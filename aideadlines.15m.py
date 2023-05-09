@@ -104,7 +104,7 @@ def main():
     try:
         """If there is a selected deadline"""
         with open(SEL_FNAME, "r") as sf:
-            sell = sf.readline().rstrip("\n").split(" ")
+            sell = sf.readline().rstrip("\n").split(",")
         cells = []
         # print(sell)
         for sel in sell:
@@ -119,19 +119,24 @@ def main():
             hours = f"{diff.seconds//3600}"
             cells.append({"name": name, "conf": conf, "days": days, "hours": hours})
             # print("--------------")
-        sorted_cells = sorted(cells, key=lambda k: -1*int(k["days"]))
+        sorted_cells = sorted(cells, key=lambda k: -1 * int(k["days"]))
         # print([cell["days"] for cell in sorted_cells])
         for cell in sorted_cells:
-            name, conf, days, hours = cell["name"], cell["conf"], cell["days"], cell["hours"]
+            name, conf, days, hours = (
+                cell["name"],
+                cell["conf"],
+                cell["days"],
+                cell["hours"],
+            )
             # print(f"{name} D{days} {hours}h+")
-            print(f"{name} D{days}")# {hours}h+")
+            print(f"{name} D{days}")  # {hours}h+")
             print("---")
             # print(f"About {name} {conf['year']}")
             # print(f"--:date: {conf['date']}")
             # print(f"--:round_pushpin: {conf['place']}")
             # print(f"--:house: Go to Website | href={conf['link']}")
             # print("-----")
-            
+
             if "abstract_deadline" in conf.keys():
                 abs_dl = make_datetime(conf, abs=True)
                 print(
@@ -161,8 +166,11 @@ def main():
             print(outstr)
     print("---")
     print(
-        f"Update Conferences Info | bash='{ME_PATH}' param1='getdl' terminal=false refresh=true"
+        f"Update Conferences Info | bash='{ME_PATH}' param1='getdl' terminal=true refresh=false"
     )
+    # print(
+    #     f"Open code | bash='code {ME_PATH}' "
+    # )  # param1='{ME_PATH}' terminal=false refresh=true")
     print("Go to aideadlin.es | href='https://aideadlin.es'")
     print("About this plugin | href='https://github.com/hany606/xbar-aideadlines")
 
@@ -171,8 +179,8 @@ def main():
 
 
 def seldl(conf_title):
-    with open(SEL_FNAME, "w") as sf:
-        sf.write(conf_title)
+    with open(SEL_FNAME, "+a") as sf:
+        sf.write(f"{conf_title},")
 
 
 """Get the deadlines list from aideadlin.es and process it"""
@@ -195,22 +203,24 @@ def getdl():
         now = dt.datetime.now()
         # if "deadline" not in conf.keys():
         #     conf["deadline"] = dt.date(conf["year"], now.month, now.day).strftime('%m/%d/%y %H:%M:%S')
-        
+
         deadline = conf["deadline"]
         # print(deadline)
         # print(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         try:
-            deadline_datetime_object = dt.datetime.strptime(deadline, '%Y-%m-%d %H:%M:%S')
+            deadline_datetime_object = dt.datetime.strptime(
+                deadline, "%Y-%m-%d %H:%M:%S"
+            )
         except:
-            deadline_datetime_object = dt.datetime.strptime(deadline, '%Y-%m-%d %H:%M')
-        if deadline_datetime_object < now:#dt.date(now.year, now.month, now.day):
+            deadline_datetime_object = dt.datetime.strptime(deadline, "%Y-%m-%d %H:%M")
+        if deadline_datetime_object < now:  # dt.date(now.year, now.month, now.day):
             # print(conf["start"], conf["year"], conf["title"])
             continue
         full[conf["title"]] = conf
         sub = conf["sub"]
         # if conf["title"] == "ICLR":
-            # print(sub)
-            # print(full["ICLR"])
+        # print(sub)
+        # print(full["ICLR"])
         if sub in subs.keys():
             subs[sub].append(conf["title"])
         else:
@@ -229,6 +239,7 @@ def getdl():
     with open(DLG_FNAME, "w") as yf:
         yaml.safe_dump(dict(full=full, subs=subs, urgent=urgent), yf)
     print("Done")
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

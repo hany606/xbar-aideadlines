@@ -19,6 +19,7 @@ ME_PATH = os.path.realpath(__file__)
 ROOT = os.path.dirname(ME_PATH)
 DL_FNAME = os.path.join(ROOT, ".aid.aideadlines.yaml")
 DLG_FNAME = os.path.join(ROOT, ".aid.processed.yaml")
+EXTRA_DLG_FNAME = os.path.join(ROOT, ".aid.processed_extra.yaml")
 SEL_FNAME = os.path.join(ROOT, ".aid.seldl")
 SHB_FNAME = os.path.join(ROOT, ".aid.ammend_shebang")
 AID_URL = "https://raw.githubusercontent.com/abhshkdz/ai-deadlines/gh-pages/_data/conferences.yml"
@@ -75,7 +76,9 @@ def make_datetime(c, abs=False):
         return timezone(timezone_).localize(
             dt.datetime.strptime(c[dl_key], "%Y-%m-%d %H:%M:%S")
         )
-    except:
+    except Exception as e:
+        print(e)
+        print("Bug")
         return timezone(timezone_).localize(
             dt.datetime.strptime(c[dl_key], "%Y-%m-%d %H:%M")
         )
@@ -96,6 +99,8 @@ def main():
         getdl()
     with open(DLG_FNAME, "r") as yf:
         dlg = yaml.safe_load(yf)
+    with open(EXTRA_DLG_FNAME, "r") as yf:
+        extra_dlg = yaml.safe_load(yf)
     # print("Open www.okex.com | href=https://www.okex.com/")
     # print(
     #     "¥0.00 | image=iVBORw0KGgoAAAANSUhEUgAAABoAAAAeCAYAAAAy2w7YAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAE3RFWHRTb2Z0d2FyZQBtb25lcm8uaG9398/iYQAAAyxJREFUeNrclstrE1EUxu9MJkWrtvWxKmgXRrG4KBRELFUqVtFKqnUnLkRF1L9AwYXBpeBCEVcuXIgbQRG0rYraGokP4iok5KHZqJi0TUwnD9I8/U48I9Mwk7FNcOGBX7i599zz3ee5I7lcLmFh/eAgGAAOsA5IIAm+AA+YBN5GQZQGbXvBJTAMZIP2DWArOASuglfgGnhuFMwowApwG7wEB0x86o1muA88A3fAKiuhTvAYXODOy7Ez4AlYbya0EjzgWTRrQ+AhWG0kdB3sF62zPeBWvdBucJ7L0+BrEwI/wGsun9QGrwld0e2JGxwGsWWIJIATvNDV0f2RSaiPj7Jma4CPO8wtQSQFRsEn0KGrp/u3Q+bRGx1hryRJR3iUVjYP3zG+vEbmJIFBs96VSsWDACMWy5iAjxO+U9Vq1cxnQOa0sshsNptIJpPC7/eLQqHwUZZls2VMoW20VCq5A4GASCQStb4G1kNCaxddcUkS5XJZxONxoaqqCIfDYmFhwYuA9cs4j7oxDMRDPuQ7MzMjIFqLUWcdslEGIOd8Pi/sdvvFTCbTFwqFSMyDwCOcTFWaJUSmWKRXUZTL6CMVi0Vhlut+Giav36Pqx1KMZ7NZBwVEkNoy0nKh7I5EIiKdTvfAZwK+O9HHbJNUEoo2yH8q6CYxzMwRDAZJzAOmaZaYySa0PaU9YF+zHPqNnokpzk2aFXVrrBW2sNgIBD5TO8+ERLbrfbkvrV9BF3NaQcNNLMUj/KFpSygnaWMNNpXEJiFGl7vIy9WrX2rqk8vlRHt7+w0c93taTJS/K2jMplKpIDloJ46ONt0J/C/VLcFmDIQetpJeRDtD9BONRgXizWIgsxQDoqKrq0soPp+P7oodlYM8AiQmWZvNRoON3Way4d3oM0SzisX+3G8ZdW/b2toKCh1HBK6g8iw43kTWpid/mAaou7S0Je6aBo+8DM5x5m6VfQCntcOlP4ZpcAy8aYHIe3CUM7rheZ/jbH63CZH7/GUUs/oKyoBTLLiU2dETQfnwhH4mf/NdN87Qw0U5bhdngE4tqfKT/w5MWO2v1OANaanJ4h/Z/yf0S4ABAI1oQOxFaPzhAAAAAElFTkSuQmCC\n---\nLive chart | href='https://www.monero.how/monero-chart'\nMonero.how homepage | href='https://www.monero.how'"
@@ -119,6 +124,16 @@ def main():
             hours = f"{diff.seconds//3600}"
             cells.append({"name": name, "conf": conf, "days": days, "hours": hours})
             # print("--------------")
+        for k in extra_dlg.keys():
+            conf = extra_dlg[k]
+            name = conf["title"]
+            # print(conf)
+            dl = make_datetime(conf)
+            # print(dl)
+            diff = get_diff(dl)
+            days = f"+{-diff.days}" if diff.days < 0 else f"-{diff.days}"
+            hours = f"{diff.seconds//3600}"
+            cells.append({"name": name, "conf": conf, "days": days, "hours": hours})
         sorted_cells = sorted(cells, key=lambda k: -1 * int(k["days"]))
         # print([cell["days"] for cell in sorted_cells])
         for cell in sorted_cells:
